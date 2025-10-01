@@ -66,36 +66,41 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     if (tappedWord != null) {
       print("Tapped word: $tappedWord");
     }
-    setState(() {
-      if (
-        selectedLocations.any((location) => location.item1 == tapLocation.item1 && location.item2 == tapLocation.item2) && 
-        selectedLocations.indexOf(tapLocation)==(selectedLocations.length-1)
-      ) {
+    
+    if (
+      selectedLocations.any((location) => location.item1 == tapLocation.item1 && location.item2 == tapLocation.item2) && 
+      selectedLocations.indexOf(tapLocation)==(selectedLocations.length-1)
+    ) {
+      setState(() {
         selectedLocations.remove(tapLocation);
-      } else if (
-        selectedLocations.isEmpty || (
-          !selectedLocations.any((location) => location.item1 == tapLocation.item1 && location.item2 == tapLocation.item2) &&
-          (tapLocation.item1 - selectedLocations.last.item1).abs() <= 1 &&
-          (tapLocation.item2 - selectedLocations.last.item2).abs() <= 1
+      });
+    } else if (
+      selectedLocations.isEmpty || (
+        !selectedLocations.any((location) => location.item1 == tapLocation.item1 && location.item2 == tapLocation.item2) &&
+        (tapLocation.item1 - selectedLocations.last.item1).abs() <= 1 &&
+        (tapLocation.item2 - selectedLocations.last.item2).abs() <= 1
+      )
+    ){
+      setState(() {
+        selectedLocations.add(tapLocation);
+      });
+      if (
+        wordLocationData[tappedWord]!.every(
+          (wordLocation) => selectedLocations.any(
+            (selectedLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
+          )
+        ) && selectedLocations.every(
+          (selectedLocation) => wordLocationData[tappedWord]!.any(
+            (wordLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
+          )
         )
       ){
-        selectedLocations.add(tapLocation);
-        if (
-          wordLocationData[tappedWord]!.every(
-            (wordLocation) => selectedLocations.any(
-              (selectedLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
-            )
-          ) && selectedLocations.every(
-            (selectedLocation) => wordLocationData[tappedWord]!.any(
-              (wordLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
-            )
-          )
-        ){
+        setState(() {
           foundWords.add(tappedWord!);
-          selectedLocations = [];
-        }
+        });
+        selectedLocations = [];
       }
-    });
+    }
   }
 
   String? getContainingWord(Tuple2<int,int> target){
@@ -297,8 +302,8 @@ class _StrandsWidgetState extends State<StrandsWidget> {
             onPressed: () {
               setState(() {
                 _showWordBank = false;
-                _needToRegenerateBoard = false;
                 setupNewBoard();
+                _needToRegenerateBoard = false;
               });
             },
           ),
