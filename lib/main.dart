@@ -445,7 +445,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                                                 decoration: BoxDecoration(
                                                   color: foundWords.contains(myWord) || _toggleShowAllWords
                                                     ? wordColors[getContainingWord(Tuple2<int,int>(colIndex,rowIndex))] 
-                                                    : selectedLocations.contains(Tuple2<int,int>(colIndex,rowIndex))
+                                                    : selectedLocations.any((location)=>location.item1 == colIndex && location.item2 == rowIndex)
                                                       ? Color.fromARGB(255, 100, 100, 100)
                                                       : Color.fromARGB(255, 255, 255, 255),
                                                   shape: BoxShape.circle
