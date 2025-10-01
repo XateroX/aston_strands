@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Aston Strands',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -46,13 +46,13 @@ class _StrandsWidgetState extends State<StrandsWidget> {
   Tuple2<int,int> gridDims = Tuple2(6,8);
 
   List<String> wordsList = [
-    "test",
-    "aston",
-    "thelongword",
-    "anotherword",
-    "little",
-    "piece",
-    "toomanyletters"
+    "Piece",
+    "Peace",
+    "Straight",
+    "Egypt",
+    "Biscuit",
+    "Cook",
+    "Circus"
   ];
 
   Map<String,Color> wordColors = {};
@@ -186,7 +186,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     for (String word in wordsList){
       totalWordLength += word.length;
     }
-    if (totalWordLength < gridDims.item1*gridDims.item2 - 5){
+    if (totalWordLength < gridDims.item1*gridDims.item2 - 4){
       // inject our words into it
       bool generatingWholeGrid = true;
       while(generatingWholeGrid){
