@@ -52,7 +52,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     "Egypt",
     "Biscuit",
     "Cook",
-    "Circus"
+    "Circus",
   ];
 
   Map<String,Color> wordColors = {};
@@ -84,6 +84,10 @@ class _StrandsWidgetState extends State<StrandsWidget> {
           wordLocationData[tappedWord]!.every(
             (wordLocation) => selectedLocations.any(
               (selectedLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
+            )
+          ) && selectedLocations.every(
+            (selectedLocation) => wordLocationData[tappedWord]!.any(
+              (wordLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
             )
           )
         ){
