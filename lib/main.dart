@@ -379,7 +379,12 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                   ),
                 ),
               ),
-            ):Container(),
+            ):Container(
+              child: Text(
+                "Found ${foundWords.length}/${wordsList.length} words",
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
