@@ -169,6 +169,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     return String.fromCharCode(_random.nextInt(charCodeUnitMax - charCodeUnitMin + 1) + charCodeUnitMin);
   }
 
+
   bool gridContainsAtLeastOneFreeSpace(){
     return true;
   }
@@ -437,8 +438,8 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                 ),
               ),
             ): Text(
-              "Found ${foundWords.length}/${wordsList.length} words",
-              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              "${foundWords.length}/${wordsList.length}",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
