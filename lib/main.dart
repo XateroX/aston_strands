@@ -341,7 +341,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
             },
           ),
           IconButton(
-            icon: Icon(_showAllWords ? Icons.visibility : Icons.visibility_off),
+            icon: Icon(_showAllWords ? Icons.visibility_off : Icons.visibility),
             onPressed: () {
               setState(() {
                 _showAllWords = !_showAllWords;
