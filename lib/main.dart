@@ -86,23 +86,49 @@ class _StrandsWidgetState extends State<StrandsWidget> {
       });
       if (
         (
-          wordLocationData[tappedWord]!.every(
+          (wordLocationData[tappedWord]??[]).every(
             (wordLocation) => selectedLocations.any(
               (selectedLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
             )
           ) && selectedLocations.every(
-            (selectedLocation) => wordLocationData[tappedWord]!.any(
+            (selectedLocation) => (wordLocationData[tappedWord]??[]).any(
               (wordLocation) => wordLocation.item1 == selectedLocation.item1 && wordLocation.item2 == selectedLocation.item2
             )
           )
-        ) || tappedWord!.characters.every(
-          (character) => selectedLocations.any(
-            (selectedLocation) => letterGridContents[selectedLocation.item1+selectedLocation.item2*gridDims.item1].toUpperCase() == character.toUpperCase()
+        ) || (
+          selectedLocations.map((loc)=>getContainingWord(loc)).where((word)=>word!=null).any((validWord) => validWord!.characters.every(
+              (character) => selectedLocations.any(
+                (selectedLocation) => letterGridContents[selectedLocation.item1+selectedLocation.item2*gridDims.item1].toUpperCase() == character.toUpperCase()
+              )
+            ) && selectedLocations.length == validWord.length
           )
         )
       ){
+        List<String?> wordsContainingSelections = selectedLocations.map((loc)=>getContainingWord(loc)).where((word)=>word!=null).toList();
+        List<String?> wordsWithAllCorrectLetters = wordsContainingSelections.where((validWord) => validWord!.characters.every(
+            (character) => selectedLocations.any(
+              (selectedLocation) => letterGridContents[selectedLocation.item1+selectedLocation.item2*gridDims.item1].toUpperCase() == character.toUpperCase()
+            )
+          ) && selectedLocations.length == validWord.length
+        ).toList();
+
+        Map<String,int> wordFrequencyMap = {};
+        for (String? word in wordsWithAllCorrectLetters){
+          if (wordFrequencyMap.containsKey(word)){
+            wordFrequencyMap[word!] = (wordFrequencyMap[word]! + 1);
+          } else {
+            wordFrequencyMap[word!] = 1;
+          }
+        }
+        String mostFrequentWord = wordsWithAllCorrectLetters.first!;
+        for (MapEntry<String,int> entry in wordFrequencyMap.entries){
+          if (entry.value > wordFrequencyMap[mostFrequentWord]!){
+            mostFrequentWord = entry.key;
+          }
+        }
+
         setState(() {
-          foundWords.add(tappedWord!);
+          foundWords.add(mostFrequentWord!);
         });
         selectedLocations = [];
       }
