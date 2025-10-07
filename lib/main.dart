@@ -618,10 +618,10 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                         child: 
                         !_needToRegenerateBoard ? ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxWidth: constraints.maxHeight*(gridDims.item1/gridDims.item2),
-                            maxHeight: constraints.maxWidth*(gridDims.item2/gridDims.item1),
-                            minWidth: constraints.maxHeight*(gridDims.item1/gridDims.item2),
-                            minHeight: constraints.maxWidth*(gridDims.item2/gridDims.item1)
+                            maxWidth: min(MediaQuery.of(context).size.height*(gridDims.item1/gridDims.item2),MediaQuery.of(context).size.width*0.8),
+                            minWidth: min(MediaQuery.of(context).size.height*(gridDims.item1/gridDims.item2),MediaQuery.of(context).size.width*0.8),
+                            maxHeight: min(MediaQuery.of(context).size.height,MediaQuery.of(context).size.width*(gridDims.item2/gridDims.item1)*0.9),
+                            minHeight: min(MediaQuery.of(context).size.height,MediaQuery.of(context).size.width*(gridDims.item2/gridDims.item1)*0.9),
                           ),
                           child: Stack(
                             children: [
@@ -667,8 +667,8 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                                                       color: foundWords.contains(myWord) || _showAllWords
                                                         ? wordColors[getContainingWord(Tuple2<int,int>(colIndex,rowIndex))] 
                                                         : selectedLocations.any((location)=>location.item1 == colIndex && location.item2 == rowIndex)
-                                                          ? Color.fromARGB(255, 100, 100, 100)
-                                                          : Color.fromARGB(255, 255, 255, 255),
+                                                          ? Color.fromARGB(255, 150, 150, 150)
+                                                          : Color.fromARGB(0, 255, 255, 255),
                                                       shape: BoxShape.circle
                                                     ),
                                                     child: Center(
