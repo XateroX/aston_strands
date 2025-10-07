@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
+import 'package:qr/qr.dart';
 
-final Random _random = Random();
+int RANDOM_SEED = DateTime.now().millisecondsSinceEpoch;
+Random _random = Random(RANDOM_SEED);
 
 void main() {
   runApp(const MyApp());
@@ -35,6 +37,9 @@ class StrandsWidget extends StatefulWidget {
 }
 
 class _StrandsWidgetState extends State<StrandsWidget> {
+  QrImage? qrimage;
+
+  bool _showQrCode = false;
   bool _showAllWords = false;
   bool _showWordBank = true;
   bool _needToRegenerateBoard = false;
@@ -54,6 +59,44 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     "Cook",
     "Circus",
   ];
+
+  void resetAllBoardVariables(){
+    selectedLocations = [];
+    foundWords = [];
+    wordLocationData = {};
+    letterGridContents = [];
+  }
+
+  void buildStateQRCode(){
+    print("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED");
+    final qrcode = QrCode(10, QrErrorCorrectLevel.L)
+      ..addData("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED"); 
+    setState(() {
+      qrimage = QrImage(qrcode);
+    });
+  }
+
+  void buildFromQRCodeLoad(){
+    final params = Uri.base.queryParameters;
+    final wordsString = params['words'];
+    final seedString = params['seed'];
+
+    if (wordsString != null && seedString != null) {
+      final seed = int.parse(seedString);
+      setState(() {
+        _showQrCode = false;
+        _showAllWords = false;
+        _showWordBank = true;
+        selectedLocations.clear();
+        foundWords.clear();
+        RANDOM_SEED = seed;
+        wordsList = wordsString.split('-').toList();
+      });
+      print(wordsList);
+      _random = Random(RANDOM_SEED);
+      setupNewBoard();
+    }
+  }
 
   Map<String,Color> wordColors = {};
 
@@ -193,21 +236,29 @@ class _StrandsWidgetState extends State<StrandsWidget> {
   @override
   void initState() {
     super.initState();
-    setupNewBoard();
+
+    print(Uri.base.toString());
+    print(Uri.base.queryParameters);
+    if (Uri.base.queryParameters.isNotEmpty){
+      buildFromQRCodeLoad();
+    } else {
+      setupNewBoard();
+    }
+    buildStateQRCode();
   }
 
   void setupNewBoard(){
-    Color randomNiceColor() {
-      final rnd = Random();
+    resetAllBoardVariables();
 
+    Color randomNiceColor() {
       // Hue: anywhere on the color wheel (0–360)
-      final hue = rnd.nextDouble() * 360;
+      final hue = _random.nextDouble() * 360;
 
       // Saturation: keep it fairly high (e.g., 0.7–1.0)
-      final saturation = 0.7 + rnd.nextDouble() * 0.3;
+      final saturation = 0.7 + _random.nextDouble() * 0.3;
 
       // Lightness: avoid extremes (e.g., 0.4–0.6 for nice vivid colors)
-      final lightness = 0.45 + rnd.nextDouble() * 0.2;
+      final lightness = 0.45 + _random.nextDouble() * 0.2;
 
       return HSLColor.fromAHSL(1.0, hue, saturation, lightness).toColor();
     }
@@ -266,7 +317,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
             );
           
             for (String letter in word.characters){
-              print(letter);
+              // print(letter);
 
               Tuple2<int,int> nextMove = Tuple2(
                 _random.nextInt(3)-1,
@@ -299,14 +350,14 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                 );
 
                 attempt++;
-                print("$word $letter Attempt:$attempt");
-                print("Target:$targetLocation");
+                // print("$word $letter Attempt:$attempt");
+                // print("Target:$targetLocation");
               }
 
               if (attempt >= 100){
                 placingWord = true;
                 wordAttempts++;
-                print("$word Attempted $wordAttempts times");
+                // print("$word Attempted $wordAttempts times");
                 break;
               }
 
@@ -317,7 +368,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
           }
         }
       }
-      print("");
+      // print("");
     } else  {
       print("Grid too small to fit words");
     }
@@ -331,10 +382,21 @@ class _StrandsWidgetState extends State<StrandsWidget> {
         title: Text(widget.title),
         actions: [
           IconButton(
+            icon: Icon(Icons.qr_code_2),
+            onPressed: () {
+              setState(() {
+                _showQrCode = !_showQrCode;
+              });
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
               setState(() {
                 _showWordBank = false;
+                RANDOM_SEED = DateTime.now().millisecondsSinceEpoch;
+                _random = Random(RANDOM_SEED);
+                buildStateQRCode();
                 setupNewBoard();
                 _needToRegenerateBoard = false;
               });
@@ -359,7 +421,18 @@ class _StrandsWidgetState extends State<StrandsWidget> {
         ],
       ),
       body: Center(
-        child: Row(
+        child: 
+        _showQrCode && qrimage != null 
+        ? Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: CustomPaint(
+            painter: QRCodePainter(
+              qrimage: qrimage!
+            ),
+            child: Container(),
+          ),
+        )
+        : Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _showWordBank ? Expanded(
@@ -390,6 +463,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                               if (totalWordLength < gridDims.item1*gridDims.item2 - 4){
                                 wordsList.add(value);
                                 _needToRegenerateBoard = true;
+                                buildStateQRCode();
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -425,6 +499,7 @@ class _StrandsWidgetState extends State<StrandsWidget> {
                                     setState(() {
                                       wordsList.remove(word);
                                       _needToRegenerateBoard = true;
+                                      buildStateQRCode();
                                     });
                                   },
                                 ),
@@ -645,6 +720,39 @@ class ConnectionPainter extends CustomPainter {
           ),
           paint
         );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(ConnectionPainter oldDelegate) => false;
+}
+
+class QRCodePainter extends CustomPainter {
+  final QrImage qrimage;
+
+  QRCodePainter({
+    required this.qrimage
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double aspectRatio = size.height / size.width;
+    canvas.translate(
+      (aspectRatio < 1) ? size.width/2 - size.height/2 : 0,
+      (aspectRatio > 1) ? size.height/2 - size.width/2 : 0
+    );
+    for (int i = 0; i < qrimage.moduleCount; i++) {
+      for (int j = 0; j < qrimage.moduleCount; j++) {
+        if (qrimage.isDark(i,j)) {
+          final double cellSize = min(size.width / qrimage.moduleCount, size.height / qrimage.moduleCount);
+          canvas.drawRect(
+            Rect.fromLTWH(j * cellSize-1, i * cellSize-1, cellSize+2, cellSize+2), 
+            Paint()
+              ..color = Colors.black
+              ..strokeWidth = 0.0
+          );
+        }
       }
     }
   }
