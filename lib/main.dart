@@ -44,6 +44,13 @@ class _StrandsWidgetState extends State<StrandsWidget> {
   bool _showWordBank = true;
   bool _needToRegenerateBoard = false;
 
+  bool _exportQrWithAnswersEnabled = false;
+  bool _answersVisible = true;
+  bool _exportQrWithWordsEditable = false;
+  bool _wordsEditable = true;
+
+  bool arrivedWithArgs = false;
+
   List<Tuple2<int,int>> selectedLocations = [];
 
   List<String> foundWords = [];
@@ -68,9 +75,9 @@ class _StrandsWidgetState extends State<StrandsWidget> {
   }
 
   void buildStateQRCode(){
-    print("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED");
+    print("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED&wordseditable=$_exportQrWithWordsEditable&answersvisible=$_exportQrWithAnswersEnabled");
     final qrcode = QrCode(10, QrErrorCorrectLevel.L)
-      ..addData("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED"); 
+      ..addData("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED&wordseditable=$_exportQrWithWordsEditable&answersvisible=$_exportQrWithAnswersEnabled"); 
     setState(() {
       qrimage = QrImage(qrcode);
     });
@@ -80,9 +87,13 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     final params = Uri.base.queryParameters;
     final wordsString = params['words'];
     final seedString = params['seed'];
+    final wordsEditableString = params['wordseditable'];
+    final answersVisibleString = params['answersvisible'];
 
-    if (wordsString != null && seedString != null) {
+    if (wordsString != null && seedString != null && wordsEditableString != null && answersVisibleString != null) {
       final seed = int.parse(seedString);
+      final wordsEditable = wordsEditableString == 'true';
+      final answersVisible = answersVisibleString == 'true';
       setState(() {
         _showQrCode = false;
         _showAllWords = false;
@@ -91,6 +102,10 @@ class _StrandsWidgetState extends State<StrandsWidget> {
         foundWords.clear();
         RANDOM_SEED = seed;
         wordsList = wordsString.split('-').toList();
+        _exportQrWithWordsEditable = wordsEditable;
+        _wordsEditable = wordsEditable;
+        _exportQrWithAnswersEnabled = answersVisible;
+        _answersVisible = answersVisible;
       });
       print(wordsList);
       _random = Random(RANDOM_SEED);
@@ -241,6 +256,8 @@ class _StrandsWidgetState extends State<StrandsWidget> {
     print(Uri.base.queryParameters);
     if (Uri.base.queryParameters.isNotEmpty){
       buildFromQRCodeLoad();
+      arrivedWithArgs = true;
+      print("query params: ${Uri.base.queryParameters}");
     } else {
       setupNewBoard();
     }
@@ -376,6 +393,62 @@ class _StrandsWidgetState extends State<StrandsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> qrcodeStack = [
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: CustomPaint(
+            painter: QRCodePainter(
+              qrimage: qrimage!
+            ),
+            child: Container(),
+          ),
+        ),
+      ),
+      !arrivedWithArgs ? Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Answers Visible: ",
+                style: TextStyle(fontSize: 36),
+              ),
+              Checkbox(
+                value: _exportQrWithAnswersEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _exportQrWithAnswersEnabled = value!;
+                  });
+                  buildStateQRCode();
+                },
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Words should be editable: ",
+                style: TextStyle(fontSize: 36),
+              ),
+              Checkbox(
+                value: _exportQrWithWordsEditable,
+                onChanged: (value) {
+                  setState(() {
+                    _exportQrWithWordsEditable = value!;
+                  });
+                  buildStateQRCode();
+                },
+              ),
+            ],
+          ),
+        ],
+      ) : Container()
+    ];
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -389,7 +462,9 @@ class _StrandsWidgetState extends State<StrandsWidget> {
               });
             },
           ),
-          IconButton(
+          ((!_answersVisible || !_wordsEditable) && arrivedWithArgs)
+          ? Container() 
+          : IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
               setState(() {
@@ -402,35 +477,33 @@ class _StrandsWidgetState extends State<StrandsWidget> {
               });
             },
           ),
-          IconButton(
+          _answersVisible
+          ? IconButton(
             icon: Icon(_showAllWords ? Icons.visibility_off : Icons.visibility),
             onPressed: () {
               setState(() {
                 _showAllWords = !_showAllWords;
               });
             },
-          ),
-          IconButton(
+          ) : Container(),
+          _wordsEditable
+          ? IconButton(
             icon: Icon(Icons.list_sharp),
             onPressed: () {
               setState(() {
                 _showWordBank = !_showWordBank;
               });
             },
-          ),
+          ) : Container(),
         ],
       ),
       body: Center(
         child: 
         _showQrCode && qrimage != null 
-        ? Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: CustomPaint(
-            painter: QRCodePainter(
-              qrimage: qrimage!
-            ),
-            child: Container(),
-          ),
+        ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: qrcodeStack,
         )
         : Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -758,5 +831,5 @@ class QRCodePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(ConnectionPainter oldDelegate) => false;
+  bool shouldRepaint(QRCodePainter oldDelegate) => false;
 }
