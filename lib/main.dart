@@ -75,9 +75,9 @@ class _StrandsWidgetState extends State<StrandsWidget> {
   }
 
   void buildStateQRCode(){
-    print("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED&wordseditable=$_exportQrWithWordsEditable&answersvisible=$_exportQrWithAnswersEnabled");
+    print("https://aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED&wordseditable=$_exportQrWithWordsEditable&answersvisible=$_exportQrWithAnswersEnabled");
     final qrcode = QrCode(10, QrErrorCorrectLevel.L)
-      ..addData("aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED&wordseditable=$_exportQrWithWordsEditable&answersvisible=$_exportQrWithAnswersEnabled"); 
+      ..addData("https://aston-strands.vercel.app/?words=${wordsList.join("-")}&seed=$RANDOM_SEED&wordseditable=$_exportQrWithWordsEditable&answersvisible=$_exportQrWithAnswersEnabled"); 
     setState(() {
       qrimage = QrImage(qrcode);
     });
